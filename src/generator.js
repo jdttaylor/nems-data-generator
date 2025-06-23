@@ -46,6 +46,43 @@ class SolaceDataGenerator {
     SolaceDataGenerator.prototype.setTargetFieldValue(field.includes('[0]') ? payload[fieldName][0] : payload[field], remaining, value);
   }
 
+  static generateNHI() {
+
+    const rawNHI = faker.helpers.fromRegExp('[Z][A-HJ-NP-Z]{2}[0-9]{2}[0-9A-HJ-NP-Z]');
+    const weights = [7, 6, 5, 4, 3, 2];
+    const charToValue = (char) => {
+      if (/[A-Z]/.test(char)) {
+        return char.charCodeAt(0) - 64; 
+      } else if (/[0-9]/.test(char)) {
+        return parseInt(char, 10);
+      } else {
+        throw new Error(`Invalid character: ${char}`);
+      }
+    };
+
+    let total = 0;
+    for (let i = 0; i < 6; i++) {
+       const value = charToValue(rawNHI[i]);
+       total += value * weights[i];
+    }
+
+    const lastChar = rawNHI[5];
+    let checkDigit;
+
+    if (/[A-Z]/.test(lastChar)) {
+      const mod = total % 23;
+      const result = 23 - mod;
+      checkDigit = String.fromCharCode(64 + result); // 1 = A, 2 = B, ...
+    } else {
+      const mod = total % 11;
+      const result = 11 - mod;
+      checkDigit = result.toString(); // append as digit
+    }
+
+     return rawNHI + checkDigit;
+
+  }
+
   generateRandomPayload(payload) {
     const generateContent = (parameter) => SolaceDataGenerator.prototype.generateContent.call(this, parameter);
     function processObject(obj) {
@@ -167,7 +204,7 @@ class SolaceDataGenerator {
     var remaining = path.substring(path.indexOf('.')+1);
     return SolaceDataGenerator.prototype.getSourceFieldValue(field.includes('[0]') ? obj[fieldName][0] : obj[field], remaining);
   }
-  
+
   generateContent(parameter) {
     switch (parameter.rule?.group) {
       case 'StringRules':
@@ -194,6 +231,8 @@ class SolaceDataGenerator {
         return SolaceDataGenerator.prototype.processCommerceRules.call(this, parameter.rule);
       case 'InternetRules':
         return SolaceDataGenerator.prototype.processInternetRules.call(this, parameter.rule);
+      case 'NEMSRules':
+        return SolaceDataGenerator.prototype.processNEMSRules.call(this, parameter.rule);
       default:
         return 'NoRuleGroupFound';
     }
@@ -347,7 +386,7 @@ class SolaceDataGenerator {
         else if (rule.format === 'DD-MM-YYYY')
           return `${day}-${month}-${year}`;
         else
-          return `${month}-${day}-${year}`;
+          return `${year}-${month}-${day}`;
       case 'currentDateWithTime':
         formatter = new Intl.DateTimeFormat("en-US", {
           month: '2-digit',
@@ -374,7 +413,7 @@ class SolaceDataGenerator {
         else if (rule.format === 'DD-MM-YYYY hh:mm:ss a')
           return `${day}-${month}-${year} ${hours12}:${minutes}:${seconds} ${amPm}`;
         else
-          return `${month}-${day}-${year} ${String(hours24).padStart(2, '0')}:${minutes}:${seconds}`;
+          return `${year}-${month}-${day} ${String(hours24).padStart(2, '0')}:${minutes}:${seconds}`;
       case 'currentTime':
         formatter = new Intl.DateTimeFormat("en-US", {
           hour: "2-digit",
@@ -390,8 +429,14 @@ class SolaceDataGenerator {
         options = { years: rule.years }
         return new Date(faker.date.future(options)).toDateString();
       case 'past':
+        formatter = new Intl.DateTimeFormat("en-US", {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+        });
         options = { years: rule.years }
-        return new Date(faker.date.past(options)).toDateString();
+        var [{ value: month }, , { value: day }, , { value: year }] = formatter.formatToParts(new Date(faker.date.past(options)));
+        return `${year}-${month}-${day}`;
       case 'recent':
         options = { days: rule.days };
         return new Date(faker.date.recent(options)).toDateString();
@@ -621,6 +666,35 @@ class SolaceDataGenerator {
         return rule.casing === 'mixed' ? faker.internet.url() : rule.casing === 'upper' ? faker.internet.url().toUpperCase() : faker.internet.url().toLowerCase();
       case 'username':
         return rule.casing === 'mixed' ? faker.internet.username() : rule.casing === 'upper' ? faker.internet.username().toUpperCase() : faker.internet.username().toLowerCase();
+    }
+  }
+  processNEMSRules(rule) {
+    var options = {};
+    var nhi_id = "";
+    var formatter = new Intl.DateTimeFormat('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    });
+    switch (rule.rule) {
+      case 'deathDate':
+        formatter = new Intl.DateTimeFormat("en-US", {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+        });
+        options = { years: rule.years }
+        const rand = Math.random();
+        var [{ value: month }, , { value: day }, , { value: year }] = formatter.formatToParts(new Date(faker.date.past(options)));
+        if (rand < 0.005) return `${year}`;
+        if (rand < 0.01) return `${year}-${month}`;
+        return `${year}-${month}-${day}`;
+      case 'callbackURL':
+        nhi_id = SolaceDataGenerator.generateNHI();
+        return `${rule.url }${nhi_id}`;
+      case 'nhi_id':
+        nhi_id = SolaceDataGenerator.generateNHI();
+        return `${nhi_id}`;
     }
   }
 }
