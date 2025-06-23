@@ -13,7 +13,8 @@
   },
   "files": [
     "index.js",
-    "index.cjs"
+    "index.cjs",
+    "src/"
   ],
   "repository": {
     "type": "git",
