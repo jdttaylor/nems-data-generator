@@ -12,7 +12,8 @@
     }
   },
   "files": [
-    "dist"
+    "index.js",
+    "index.cjs"
   ],
   "repository": {
     "type": "git",
