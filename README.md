@@ -1,13 +1,13 @@
-# Solace Data Generator
+# Nems Data Generator
 This repo is an npm package used to generate random payloads and topics. The following two functions are exposed:
 
 ## Installation and Usage
 ```
-npm install @solace-labs/solace-data-generator
+npm install nems-data-generator
 ```
 
 ```
-import { generateEvent } from '@solace-labs/solace-data-generator';
+import { generateEvent } from 'nems-data-generator';
 const { payload, topic } = generateEvent(event);
 ```
 
