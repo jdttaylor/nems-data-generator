@@ -16,7 +16,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/solacecommunity/solace-data-generator"
+    "url": "https://github.com/tewhatuora/nems-data-generator"
   },
   "publishConfig": {
     "access": "public"
@@ -26,16 +26,16 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "Solace Corporation",
+  "author": "Health New Zealand",
   "contributors": [
     {
-      "name": "Tamimi",
-      "email": "tamimi@solace.com"
+      "name": "Health New Zealand",
+      "email": "customerservice@health.govt.nz"
     }
   ],
   "license": "APACHE-2.0",
   "bugs": {
-    "url": "https://github.com/solacecommunity/solace-data-generator/issues"
+    "url": "https://github.com/tewhatuora/nems-data-generator/issues"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0"
